@@ -30,6 +30,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONObject;
 
 
@@ -45,7 +46,7 @@ public class PersonaBean implements Serializable {
 	private String nombre;
 	private String telefono;
 	
-	private JSONObject myObject;
+	private ArrayList<Object> listdata;
 	
 	public PersonaBean() {
 		
@@ -73,14 +74,14 @@ public class PersonaBean implements Serializable {
 	public void setTelefono(String telefono) {
 		this.telefono = telefono;
 	}
-	
-	public JSONObject getMyObject() {
-		return myObject;
+
+	public ArrayList<Object> getListdata() {
+		return listdata;
 	}
 
-	public void setMyObject(JSONObject myObject) {
-		this.myObject = myObject;
-	}	
+	public void setListdata(ArrayList<Object> listdata) {
+		this.listdata = listdata;
+	}
 
 	public String getId() {
 		return id;
@@ -212,12 +213,26 @@ public class PersonaBean implements Serializable {
 	        e1.printStackTrace();
 	    }
 	    
-	    result = result.replace("[", "{");
-	    result = result.replace("]", "}");
+	    result = "{ \"data\" :"+result+"}";
 	    
 	    System.out.println("THIS IS THE RESULT>>>> "+result);
-	    myObject = new JSONObject(result);
-	    System.out.println("JSON>>>> "+myObject);
+	    JSONObject myObject = new JSONObject(result);
+	    
+	    
+	    listdata = new ArrayList<Object>();  
+	    JSONArray jArray = myObject.getJSONArray("data");
+	    
+	    if (jArray != null) {   
+            
+            //Iterating JSON array  
+            for (int i=0;i<jArray.length();i++){   
+                  
+                //Adding each element of JSON array into ArrayList  
+                listdata.add(jArray.get(i));  
+            }   
+        }  
+	    
+	    System.out.println("JSON>>>> "+ listdata);
 		
 		FacesContext.getCurrentInstance().getApplication().getNavigationHandler().handleNavigation(FacesContext.getCurrentInstance(), null, "list.xhtml");
 	}
