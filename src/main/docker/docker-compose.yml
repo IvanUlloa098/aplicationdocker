@@ -1,0 +1,18 @@
+version: '3.6'
+
+services:
+
+  srvapp:
+    image: ups/aplicationdocker
+    container_name: srvapp
+    hostname: srvapp
+    environment:
+      TZ:  America/Guayaquil
+    ports:
+      - 8083:8080
+    command: /opt/jboss/wildfly/bin/standalone.sh -b 0.0.0.0 -c standalone.xml -bmanagement 0.0.0.0 --debug *:8787
+    networks:
+      - datalogger_net
+
+networks:
+  datalogger_net:
