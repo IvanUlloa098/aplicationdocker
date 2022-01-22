@@ -40,6 +40,8 @@ public class PersonaBean implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
+	private String id;
+	
 	private String nombre;
 	private String telefono;
 	
@@ -78,10 +80,18 @@ public class PersonaBean implements Serializable {
 
 	public void setMyObject(JSONObject myObject) {
 		this.myObject = myObject;
+	}	
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
 	}
 
 	public void createContact() {
-		System.out.println("*****CREATED*****");
+		
 		System.out.println(">>>>> "+nombre);
 		System.out.println(">>>>> "+telefono);
 		
@@ -111,6 +121,7 @@ public class PersonaBean implements Serializable {
             
             
             EntityUtils.consume(resEntity);
+            System.out.println("*****CREATED*****");
 	        
 	        
 			
@@ -122,6 +133,47 @@ public class PersonaBean implements Serializable {
         }
 		
 		
+	}
+	
+	public void modifyContact() {
+		
+		HttpClient httpclient = new DefaultHttpClient();
+		
+		try {
+			
+			HttpPost httpPost = new HttpPost("http://srvwildfly:8080/apidocker/rs/hola/modify");
+			System.out.println("----------------------------------------");
+            List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+            nameValuePairs.add(new BasicNameValuePair("id",id));
+            nameValuePairs.add(new BasicNameValuePair("nombre",nombre));
+            nameValuePairs.add(new BasicNameValuePair("telefono",telefono));
+            httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairs)); 
+            System.out.println("----------------------------------------");
+            System.out.println("executing request " + httpPost.getRequestLine());
+            HttpResponse response = httpclient.execute(httpPost);
+            HttpEntity resEntity = response.getEntity();
+            System.out.println("----------------------------------------");
+           
+            System.out.println(response.getStatusLine());
+            if (resEntity != null) {
+                System.out.println("Response content length: " + resEntity.getContentLength());
+                System.out.println("Chunked?: " + resEntity.isChunked());
+                String responseBody = EntityUtils.toString(resEntity);
+                System.out.println("Data: " + responseBody);
+            }
+            
+            
+            EntityUtils.consume(resEntity);
+            System.out.println("*****MODIFIED*****");
+	        
+	        
+			
+		} catch (Exception e) {
+			System.out.println("*****AN ERROR HAS OCURRED*****\n"+e);
+		} finally {
+            
+            httpclient.getConnectionManager().shutdown();
+        }
 	}
 	
 	public void redirectPersona() {
@@ -160,15 +212,53 @@ public class PersonaBean implements Serializable {
 	        e1.printStackTrace();
 	    }
 	    
-	    StringBuilder sb = new StringBuilder(result);
-	    sb.deleteCharAt(result.length() - 1);
-	    sb.deleteCharAt(0);
+	    result = result.replace("[", "{");
+	    result = result.replace("]", "}");
 	    
-	    System.out.println("THIS IS THE RESULT>>>> "+sb.toString());
-	    myObject = new JSONObject(sb.toString());
+	    System.out.println("THIS IS THE RESULT>>>> "+result);
+	    myObject = new JSONObject(result);
 	    System.out.println("JSON>>>> "+myObject);
 		
 		FacesContext.getCurrentInstance().getApplication().getNavigationHandler().handleNavigation(FacesContext.getCurrentInstance(), null, "list.xhtml");
+	}
+	
+	
+	
+	
+	public void deleteContact() {
+		HttpClient client = new DefaultHttpClient();
+	    HttpGet request = new HttpGet("http://srvwildfly:8080/apidocker/rs/hola/delete/"+id);
+	    HttpResponse response;
+	    String result = null;
+	    try {
+	        response = client.execute(request);         
+	        HttpEntity entity = response.getEntity();
+
+	        if (entity != null) {
+
+	            // A Simple JSON Response Read
+	            InputStream instream = entity.getContent();
+	            result = convertStreamToString(instream);
+	            // now you have the string representation of the HTML request
+	            System.out.println("RESPONSE: " + result);
+	            instream.close();
+	            if (response.getStatusLine().getStatusCode() == 200) {
+	                System.out.println("**DONE");
+	            }
+
+	        }
+	        // Headers
+	        org.apache.http.Header[] headers = response.getAllHeaders();
+	        for (int i = 0; i < headers.length; i++) {
+	            System.out.println(headers[i]);
+	        }
+	    } catch (ClientProtocolException e1) {
+	        // TODO Auto-generated catch block
+	        e1.printStackTrace();
+	    } catch (IOException e1) {
+	        // TODO Auto-generated catch block
+	        e1.printStackTrace();
+	    }
 	}
 	
 	private static String convertStreamToString(InputStream is) {
